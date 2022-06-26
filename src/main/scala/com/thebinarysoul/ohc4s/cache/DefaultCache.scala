@@ -3,6 +3,7 @@ package com.thebinarysoul.ohc4s.cache
 import com.thebinarysoul.ohc4s.cache.DefaultCache.Id
 import com.thebinarysoul.ohc4s.codec.{Codec, Serializer}
 import org.caffinitas.ohc.{OHCache, OHCacheBuilder}
+import util.chaining.scalaUtilChainingOps
 
 import java.nio.ByteBuffer
 
@@ -11,6 +12,7 @@ case class DefaultCache[K, V](capacity: Option[Long] = None)(using keyCodec: Cod
     .newBuilder[ByteBuffer, ByteBuffer]
     .keySerializer(Serializer)
     .valueSerializer(Serializer)
+    .pipe(builder => capacity.map(builder.capacity).getOrElse(builder))
     .build()
 
   private implicit inline def encode[T](value: T)(using codec: Codec[T]): ByteBuffer = codec.encode(value)

@@ -6,7 +6,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 class DefaultCacheSpec extends AnyFlatSpec with Matchers {
-  private val cache = Cache.default[String, List[Int]]()
+  private val cache = Cache.create[String, List[Int]]()
 
   "cache" should "put (key, value)" in {
     cache.put("key", List(1, 2, 3)) shouldBe true

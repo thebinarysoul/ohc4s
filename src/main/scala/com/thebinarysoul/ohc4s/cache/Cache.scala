@@ -13,5 +13,5 @@ trait Cache[F[_], K, V] {
 }
 
 object Cache {
-  def default[K, V](capacity: Option[Long] = None)(using Codec[K], Codec[V]): DefaultCache[K, V] = DefaultCache(capacity)
+  def create[K, V](capacity: Option[Long] = None)(using Codec[K], Codec[V]): DefaultCache[K, V] = DefaultCache(capacity)
 }
