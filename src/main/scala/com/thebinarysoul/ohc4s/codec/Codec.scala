@@ -1,7 +1,7 @@
 package com.thebinarysoul.ohc4s.codec
 
 import com.thebinarysoul.ohc4s.codec.Codec.*
-import com.thebinarysoul.ohc4s.codec.Size.*
+import com.thebinarysoul.ohc4s.codec.Num.*
 
 import java.nio.ByteBuffer as Buffer
 import scala.language.implicitConversions
