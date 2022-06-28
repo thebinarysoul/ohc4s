@@ -24,35 +24,35 @@ object Codec {
     .flip
 }
 
-given Codec[Byte] with
+inline given Codec[Byte] with
   override def encode(value: Byte): Buffer = encodeWith(int[1])(_.put(value))
   override def decode(buffer: Buffer): Byte = buffer.get
 
-given Codec[Short] with
+inline given Codec[Short] with
   override def encode(value: Short): Buffer = encodeWith(int[2])(_.putShort(value))
   override def decode(buffer: Buffer): Short = buffer.getShort
 
-given Codec[Int] with
+inline given Codec[Int] with
   override def encode(value: Int): Buffer = encodeWith(int[4])(_.putInt(value))
   override def decode(buffer: Buffer): Int = buffer.getInt
 
-given Codec[Long] with
+inline given Codec[Long] with
   override def encode(value: Long): Buffer = encodeWith(int[8])(_.putLong(value))
   override def decode(buffer: Buffer): Long = buffer.getLong
 
-given Codec[Float] with
+inline given Codec[Float] with
   override def encode(value: Float): Buffer = encodeWith(int[4])(_.putFloat(value))
   override def decode(buffer: Buffer): Float = buffer.getFloat
 
-given Codec[Double] with
+inline given Codec[Double] with
   override def encode(value: Double): Buffer = encodeWith(int[8])(_.putDouble(value))
   override def decode(buffer: Buffer): Double = buffer.getDouble
 
-given Codec[Boolean] with
+inline given Codec[Boolean] with
   override def encode(value: Boolean): Buffer = encodeWith(int[1])(_.put(if value then byte[1] else byte[0]))
   override def decode(buffer: Buffer): Boolean = buffer.get == int[1]
 
-given Codec[String] with
+inline given Codec[String] with
   override def encode(value: String): Buffer =
     val bytes = value.getBytes
     merge(
@@ -66,7 +66,7 @@ given Codec[String] with
     buffer.get(array)
     String(array)
 
-implicit inline def optCodec[T](using codec: Codec[T]): Codec[Option[T]] = new Codec[Option[T]]:
+inline given optCodec[T](using codec: Codec[T]): Codec[Option[T]] = new Codec[Option[T]]:
   override def encode(value: Option[T]): Buffer = value match {
     case Some(value) =>
       merge(
@@ -81,7 +81,7 @@ implicit inline def optCodec[T](using codec: Codec[T]): Codec[Option[T]] = new C
     then Some(codec.decode(buffer))
     else None
 
-implicit inline def seqCodec[T](using codec: Codec[T]): Codec[List[T]] = new Codec[List[T]]:
+inline given seqCodec[T](using codec: Codec[T]): Codec[List[T]] = new Codec[List[T]]:
   override def encode(value: List[T]): Buffer =
     val sizeBuffer = encodeWith(int[4])(_.putInt(value.size))
     value
@@ -92,7 +92,7 @@ implicit inline def seqCodec[T](using codec: Codec[T]): Codec[List[T]] = new Cod
     val size = buffer.getInt
     List.fill(size)(codec.decode(buffer))
 
-implicit inline def mapCodec[K, V](using keyCodec: Codec[K], valueCodec: Codec[V]): Codec[Map[K, V]] = new Codec[Map[K, V]]:
+inline given mapCodec[K, V](using keyCodec: Codec[K], valueCodec: Codec[V]): Codec[Map[K, V]] = new Codec[Map[K, V]]:
   override def encode(value: Map[K, V]): Buffer = {
     val sizeBuffer = encodeWith(int[4])(_.putInt(value.size))
     value
