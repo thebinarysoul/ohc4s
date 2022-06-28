@@ -10,7 +10,7 @@ you can create a cache instance with the capacity you need (in bytes).
 import com.thebinarysoul.ohc4s.cache.Cache
 import com.thebinarysoul.ohc4s.codec.given
 
-val cache = Cache.create[String, Long](Some(64 * 1024 * 1024))
+val cache = Cache.create[String, Long](64 * 1024 * 1024)
 ```
 
 You can put your data or receive it in a safe way.

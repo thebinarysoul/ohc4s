@@ -6,14 +6,7 @@ import util.chaining.scalaUtilChainingOps
 
 import java.nio.ByteBuffer
 
-class DefaultCache[K, V](capacity: Option[Long] = None)(using keyCodec: Codec[K], valueCodec: Codec[V]) extends Cache[[T] =>> T, K, V] {
-  override protected val cache: OHCache[ByteBuffer, ByteBuffer] = OHCacheBuilder
-    .newBuilder[ByteBuffer, ByteBuffer]
-    .keySerializer(Serializer)
-    .valueSerializer(Serializer)
-    .pipe(builder => capacity.map(builder.capacity).getOrElse(builder))
-    .build()
-
+class DefaultCache[K, V](capacity: Long)(using Codec[K], Codec[V]) extends Cache[[T] =>> T, K, V](capacity) {
   private implicit inline def encode[T](value: T)(using codec: Codec[T]): ByteBuffer = codec.encode(value)
   private implicit inline def decode[T](buffer: ByteBuffer)(using codec: Codec[T]): Option[T] = Option(buffer).map(codec.decode)
 
