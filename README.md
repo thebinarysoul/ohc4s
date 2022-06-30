@@ -10,15 +10,17 @@ you can create a cache instance with the capacity you need (in bytes).
 import com.thebinarysoul.ohc4s.cache.Cache
 import com.thebinarysoul.ohc4s.codec.given
 
-val cache = Cache.create[String, Long](64 * 1024 * 1024)
+case class User(name: String, age: Int)
+
+val cache = Cache.create[String, User](64 * 1024 * 1024)
 ```
 
 You can put your data or receive it in a safe way.
 
 ```scala
-cache.put("key", 123)
+cache.put("Luna", User("Luna", 7))
 
-val maybeValue: Option[Long] = cache.get("key")
+val maybeValue: Option[User] = cache.get("Luna")
 ```
 
 ## Limitations

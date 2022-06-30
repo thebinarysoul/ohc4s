@@ -75,7 +75,7 @@ class CodecSpec extends AnyFlatSpec with Matchers {
   }
 
   "Codec" should "derive custom Codec[T]" in {
-    implicit val userCodec: Codec[LocalDateTime] = new Codec[LocalDateTime] {
+    given userCodec: Codec[LocalDateTime] = new Codec[LocalDateTime] {
       override def encode(value: LocalDateTime): ByteBuffer = summon[Codec[String]].encode(value.toString)
       override def decode(buffer: ByteBuffer): LocalDateTime = LocalDateTime.parse(summon[Codec[String]].decode(buffer))
     }
@@ -83,7 +83,22 @@ class CodecSpec extends AnyFlatSpec with Matchers {
     check(LocalDateTime.now)
   }
 
-  private def check[T](initValue: T)(using Codec[T]): Unit = {
+  "Codec" should "derive Codec[TupleN]" in {
+    check(("abc", 1))
+    check(true, 1.toByte, 2.toShort, 3, 4L, 5.0f, 5.0, "abc")
+    check(Some(1), List("a", "b", "c"), Map.empty[String, String])
+  }
+
+  "Codec" should "derive Codec[ProductN]" in {
+    case class User(name: String, age: Int)
+    
+    val user = User("Luna", 7)
+    
+    check(user)
+    check(List.fill(10)(user))
+  }
+  
+  private def check[T : Codec](initValue: T): Unit = {
     val codec = summon[Codec[T]]
     val buffer = codec.encode(initValue)
     val decodedValue = codec.decode(buffer)

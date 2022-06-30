@@ -4,7 +4,8 @@ import com.thebinarysoul.ohc4s.codec.Codec.*
 import com.thebinarysoul.ohc4s.codec.Num.*
 
 import java.nio.ByteBuffer as Buffer
-import scala.language.implicitConversions
+import scala.deriving.Mirror.ProductOf
+import scala.deriving.Mirror
 import scala.util.chaining.*
 
 trait Codec[T]:
@@ -81,7 +82,7 @@ inline given optCodec[T](using codec: Codec[T]): Codec[Option[T]] = new Codec[Op
     then Some(codec.decode(buffer))
     else None
 
-inline given seqCodec[T](using codec: Codec[T]): Codec[List[T]] = new Codec[List[T]]:
+inline given listCodec[T](using codec: Codec[T]): Codec[List[T]] = new Codec[List[T]]:
   override def encode(value: List[T]): Buffer =
     val sizeBuffer = encodeWith(int[4])(_.putInt(value.size))
     value
@@ -106,5 +107,19 @@ inline given mapCodec[K, V](using keyCodec: Codec[K], valueCodec: Codec[V]): Cod
       .fill(size)(keyCodec.decode(buffer) -> valueCodec.decode(buffer))
       .toMap
 
+inline given [H: Codec, T <: Tuple: Codec]: Codec[H *: T] with
+  override def encode(value: H *: T): Buffer = value match
+    case head *: tail => merge(
+      summon[Codec[H]].encode(head),
+      summon[Codec[T]].encode(tail)
+    )
 
+  override def decode(buffer: Buffer): H *: T = summon[Codec[H]].decode(buffer) *: summon[Codec[T]].decode(buffer)
 
+inline given Codec[EmptyTuple] with
+  override def encode(value: EmptyTuple): Buffer = Buffer.allocate(0)
+  override def decode(buffer: Buffer): EmptyTuple = EmptyTuple
+
+inline given productCodec[P <: Product](using m: Mirror.ProductOf[P], metCodec: Codec[m.MirroredElemTypes]): Codec[P] = new Codec[P]:
+  override def encode(value: P): Buffer = metCodec.encode(Tuple.fromProductTyped(value))
+  override def decode(buffer: Buffer): P = m.fromProduct(metCodec.decode(buffer))
