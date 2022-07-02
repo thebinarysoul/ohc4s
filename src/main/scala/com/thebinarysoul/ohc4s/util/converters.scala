@@ -30,7 +30,7 @@ object converters {
       case _ => throw IllegalArgumentException("You should use java.util.concurrent.Future.asScala only for OHCCache API")
 
   extension[T] (javaIterator: CloseableIterator[T])
-    def asScala: AutoCloseableIterator[T] = new AutoCloseableIterator[T] :
+    inline def asScala: AutoCloseableIterator[T] = new AutoCloseableIterator[T] :
       override def close(): Unit = javaIterator.close()
       override def hasNext: Boolean = javaIterator.hasNext
       override def next(): T = javaIterator.next()

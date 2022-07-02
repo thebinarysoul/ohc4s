@@ -9,8 +9,7 @@ import java.io.IOException
 import util.chaining.scalaUtilChainingOps
 import java.nio.ByteBuffer
 import java.nio.channels.{ReadableByteChannel, WritableByteChannel}
-import java.util.concurrent.{Future, TimeUnit}
-import scala.concurrent.{ExecutionException, TimeoutException}
+import java.util.concurrent.{ExecutionException, Future, TimeUnit, TimeoutException}
 
 trait Cache[F[_], A[_], K, V] {
   def put(key: K, value: V): F[Boolean]
@@ -26,29 +25,29 @@ trait Cache[F[_], A[_], K, V] {
   def remove(key: K): F[Boolean]
   def removeAll(keys: Seq[K]): F[Unit]
   def clear(): F[Unit]
-  
+
   def get(key: K): F[Option[V]]
   def containsKey(key: K): F[Boolean]
   def getDirect(key: K): F[DirectValueAccess]
   def getDirect(key: K, updateLRU: Boolean): F[DirectValueAccess]
-  
+
   def getWithLoader(key: K, loader: CacheLoader[K, V]): F[Either[InterruptedException | ExecutionException, V]]
   def getWithLoader(key: K, loader: CacheLoader[K, V], timeout: Long, unit: TimeUnit): F[Either[InterruptedException | ExecutionException | TimeoutException, V]]
   def getWithLoaderAsync(key: K, loader: CacheLoader[K, V]): F[A[V]]
-  def getWithLoaderAsync(key: K, loader: CacheLoader[K, V], expireAt: Long): F[A[V]] 
-  
+  def getWithLoaderAsync(key: K, loader: CacheLoader[K, V], expireAt: Long): F[A[V]]
+
   def hotKeyIterator(n: Int): F[AutoCloseableIterator[K]]
   def keyIterator: F[AutoCloseableIterator[K]]
   def hotKeyBufferIterator(n: Int): F[AutoCloseableIterator[ByteBuffer]]
   def keyBufferIterator: F[AutoCloseableIterator[ByteBuffer]]
-  
+
   def deserializeEntry(channel: ReadableByteChannel): F[Either[IOException, Boolean]]
   def serializeEntry(key: K, channel: WritableByteChannel): F[Either[IOException, Boolean]]
   def deserializeEntries(channel: ReadableByteChannel): F[Either[IOException, Int]]
   def serializeHotNEntries(n: Int, channel: WritableByteChannel): F[Either[IOException, Int]]
   def serializeHotNKeys(n: Int, channel: WritableByteChannel): F[Either[IOException, Int]]
   def deserializeKeys(channel: ReadableByteChannel): F[Either[IOException, AutoCloseableIterator[K]]]
-  
+
   def size: F[Long]
   def hashTableSizes: F[Array[Int]]
   def perSegmentSizes: F[Array[Long]]
