@@ -42,9 +42,9 @@ private[cache] class DefaultCache[K, V](conf: CacheConf)(using Codec[K], Codec[V
 
   override def containsKey(key: K): Boolean = cache.containsKey(key)
 
-  override def getDirect(key: K): DirectValueAccess = cache.getDirect(key)
+  override def getDirect(key: K): Option[DirectValueAccess] = Option(cache.getDirect(key))
 
-  override def getDirect(key: K, updateLRU: Boolean): DirectValueAccess = cache.getDirect(key, updateLRU)
+  override def getDirect(key: K, updateLRU: Boolean): Option[DirectValueAccess] = Option(cache.getDirect(key, updateLRU))
 
   private def safe[T, E <: Throwable](action: => T): Either[E, T] =
     try Right(action)

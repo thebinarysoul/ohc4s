@@ -25,7 +25,7 @@ val maybeValue: Option[User] = cache.get("Luna")
 
 ## Limitations
 
-Not all functions of the original cache are implemented (WIP).
+TBD
 
 ## License
 ohc4s is made available under the [Apache 2.0 License](/LICENSE).

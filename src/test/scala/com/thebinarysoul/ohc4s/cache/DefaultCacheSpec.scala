@@ -4,12 +4,27 @@ import com.thebinarysoul.ohc4s.codec.*
 import com.thebinarysoul.ohc4s.codec.given
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.BeforeAndAfterEach
 
-class DefaultCacheSpec extends AnyFlatSpec with Matchers {
-  private val cache = Cache.create[String, List[(String, Int)]](64 * 1024 * 1024)
+class DefaultCacheSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach {
+  private val cache = Cache.create[String, List[(String, Int)]](1024 * 16)
+
+  override protected def beforeEach(): Unit = {
+    cache.clear()
+    cache.resetStatistics()
+  }
 
   "cache" should "put (key, value)" in {
     cache.put("key", List(("a", 1), ("b", 2))) shouldBe true
+  }
+
+  "cache" should "contain key" in {
+    cache.put("key", List(("a", 1)))
+    cache.containsKey("key") shouldBe true
+  }
+
+  "cache" should "not contain key" in {
+    cache.containsKey("key") shouldBe false
   }
 
   "cache" should "get Some(value)" in {
@@ -21,10 +36,76 @@ class DefaultCacheSpec extends AnyFlatSpec with Matchers {
     cache.get("key2") shouldBe None
   }
 
-  "cache" should "replace the same keys" in {
-    val key = "key"
-    cache.put(key, List(("a", 1)))
-    cache.put(key, List(("b", 2)))
-    cache.get(key) shouldBe Some(List(("b", 2)))
+  "cache" should "not get DirectAccessValue" in {
+    cache.getDirect("key2") shouldBe None
+    cache.getDirect("key3", true) shouldBe None
   }
+
+  "cache" should "get DirectAccessValue" in {
+    cache.putAll(data)
+    val raw = List(
+      cache.getDirect("1"),
+      cache.getDirect("2", true)
+    )
+
+    val values = raw.flatten.map { dva =>
+      summon[Codec[List[(String, Int)]]].decoder(dva.buffer)
+    }
+
+    values shouldBe List(List(("1", 1)),List(("2",2)))
+  }
+
+  "cache" should "put Map[K, V]" in {
+    cache.putAll(data)
+
+    data.foreach {
+      case (key, value) => cache.get(key) shouldBe Some(value)
+    }
+  }
+
+  "cache" should "remove all entries" in {
+    cache.putAll(data)
+
+    cache.size shouldBe 10
+    cache.clear()
+    cache.size shouldBe 0
+  }
+
+  "cache" should "remove an entry by key" in {
+    cache.putAll(data)
+
+    cache.remove("1") shouldBe true
+    cache.size shouldBe 9
+  }
+
+  "cache" should "return capacity" in {
+     cache.capacity shouldBe 1024 * 16
+  }
+
+  "cache" should "return loadFactor" in {
+    cache.loadFactor shouldBe 0.75f
+  }
+
+  "cache" should "return freeCapacity" in {
+    cache.freeCapacity shouldBe cache.capacity
+    cache.put("1", Nil)
+    cache.freeCapacity shouldBe cache.capacity - 80
+  }
+
+  "cache" should "return memUsed" in {
+    cache.memUsed shouldBe 0
+    cache.put("1", Nil)
+    cache.memUsed shouldBe 80
+  }
+
+  "cache" should "return size" in {
+    cache.size shouldBe 0
+    cache.putAll(data)
+    cache.size shouldBe 10
+  }
+
+  private def data: Map[String, List[(String, Int)]] = List
+    .range(0, 10)
+    .map(i => (i.toString, List((i.toString, i))))
+    .toMap
 }

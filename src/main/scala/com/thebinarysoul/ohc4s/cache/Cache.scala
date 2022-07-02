@@ -28,8 +28,8 @@ trait Cache[F[_], A[_], K, V] {
 
   def get(key: K): F[Option[V]]
   def containsKey(key: K): F[Boolean]
-  def getDirect(key: K): F[DirectValueAccess]
-  def getDirect(key: K, updateLRU: Boolean): F[DirectValueAccess]
+  def getDirect(key: K): F[Option[DirectValueAccess]]
+  def getDirect(key: K, updateLRU: Boolean): F[Option[DirectValueAccess]]
 
   def getWithLoader(key: K, loader: CacheLoader[K, V]): F[Either[InterruptedException | ExecutionException, V]]
   def getWithLoader(key: K, loader: CacheLoader[K, V], timeout: Long, unit: TimeUnit): F[Either[InterruptedException | ExecutionException | TimeoutException, V]]
