@@ -8,7 +8,7 @@ import java.util.function.Consumer
 import scala.util.Using
 import converters.*
 
-import java.util.concurrent.Future
+import java.util.concurrent.{ExecutionException, Future}
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
@@ -38,9 +38,15 @@ class ConvertersSpec extends AnyFlatSpec with Matchers {
     assertThrows[CloseableIteratorException](closeableIterator.next())
   }
 
-  "Future.asScala" should "convert ListenableFuture to scala.concurrent.Future" in {
+  "Future.asScala" should "convert ListenableFuture to scala.concurrent.Future(success)" in {
     val future = com.google.common.util.concurrent.Futures.immediateFuture("value")
     val scalaFuture = future.asScala
     Await.result(scalaFuture, Duration.Inf) shouldBe "value"
+  }
+
+  "Future.asScala" should "convert ListenableFuture to scala.concurrent.Future(failure)" in {
+    val future = com.google.common.util.concurrent.Futures.immediateFailedFuture(new RuntimeException("error"))
+    val scalaFuture = future.asScala
+    assertThrows[ExecutionException](Await.result(scalaFuture, Duration.Inf))
   }
 }
