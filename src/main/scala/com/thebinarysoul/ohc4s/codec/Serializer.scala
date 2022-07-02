@@ -2,13 +2,14 @@ package com.thebinarysoul.ohc4s.codec
 
 import java.nio.ByteBuffer
 import org.caffinitas.ohc.CacheSerializer
+import com.thebinarysoul.ohc4s.codec.Codec
 
-//TODO: It must be parameterized
-private[ohc4s] object Serializer extends CacheSerializer[ByteBuffer] {
-  override def serialize(value: ByteBuffer, buf: ByteBuffer): Unit = buf.put(value)
-  override def deserialize(buf: ByteBuffer): ByteBuffer =
-    if buf != null
-    then buf.duplicate
-    else buf
-  override def serializedSize(value: ByteBuffer): Int = value.limit()
+private[ohc4s] class Serializer[T](using codec: Codec[T]) extends CacheSerializer[T] {
+  override def serialize(value: T, buf: ByteBuffer): Unit = codec
+    .encoder
+    .apply(buf)
+    .apply(value)
+  
+  override def deserialize(buf: ByteBuffer): T = codec.decoder(buf)
+  override def serializedSize(value: T): Int = codec.sizeEstimator(value)
 }

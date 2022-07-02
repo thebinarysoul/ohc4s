@@ -1,7 +1,6 @@
 package com.thebinarysoul.ohc4s.cache
 
-import com.thebinarysoul.ohc4s.codec.Codec
-import com.thebinarysoul.ohc4s.config.CacheConf
+import com.thebinarysoul.ohc4s.codec.{Codec, Serializer}
 import org.caffinitas.ohc.{CacheSerializer, OHCache, OHCacheBuilder}
 
 import java.nio.ByteBuffer
@@ -13,12 +12,11 @@ private[cache] object CacheBuilder {
         .map(transition(builder))
         .getOrElse(builder)
 
-  //TODO: It must be parameterized
-  def from(conf: CacheConf, keySerializer: CacheSerializer[ByteBuffer], valueSerializer: CacheSerializer[ByteBuffer]): OHCacheBuilder[ByteBuffer, ByteBuffer] = OHCacheBuilder
-    .newBuilder[ByteBuffer, ByteBuffer]
+  def from[K : Codec, V : Codec](conf: CacheConf): OHCacheBuilder[K, V] = OHCacheBuilder
+    .newBuilder[K, V]
     .capacity(conf.capacity)
-    .keySerializer(keySerializer)
-    .valueSerializer(valueSerializer)
+    .keySerializer(Serializer[K])
+    .valueSerializer(Serializer[V])
     .set(conf.timeouts, _.timeouts)
     .set(conf.timeoutsPrecision, _.timeoutsPrecision)
     .set(conf.timeoutsSlots, _.timeoutsSlots)

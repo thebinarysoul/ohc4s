@@ -5,7 +5,7 @@ import org.scalatest.matchers.should.Matchers
 import Codec.*
 
 import java.nio.ByteBuffer
-import java.time.LocalDateTime
+import java.time.{Instant, LocalDate}
 import scala.util.Random
 
 class CodecSpec extends AnyFlatSpec with Matchers {
@@ -75,12 +75,12 @@ class CodecSpec extends AnyFlatSpec with Matchers {
   }
 
   "Codec" should "derive custom Codec[T]" in {
-    given userCodec: Codec[LocalDateTime] = new Codec[LocalDateTime] {
-      override def encode(value: LocalDateTime): ByteBuffer = summon[Codec[String]].encode(value.toString)
-      override def decode(buffer: ByteBuffer): LocalDateTime = LocalDateTime.parse(summon[Codec[String]].decode(buffer))
-    }
+    given userCodec: Codec[LocalDate] = new Codec[LocalDate]:
+      override def encoder: Encoder[LocalDate] = buffer => value => buffer.putLong(value.toEpochDay)
+      override def decoder: Decoder[LocalDate] = buffer => LocalDate.ofEpochDay(buffer.getLong)
+      override def sizeEstimator: Estimator[LocalDate] = _ => 8
 
-    check(LocalDateTime.now)
+    check(LocalDate.now)
   }
 
   "Codec" should "derive Codec[TupleN]" in {
@@ -91,17 +91,26 @@ class CodecSpec extends AnyFlatSpec with Matchers {
 
   "Codec" should "derive Codec[ProductN]" in {
     case class User(name: String, age: Int)
-    
+
     val user = User("Luna", 7)
-    
+
     check(user)
     check(List.fill(10)(user))
   }
-  
+
   private def check[T : Codec](initValue: T): Unit = {
     val codec = summon[Codec[T]]
-    val buffer = codec.encode(initValue)
-    val decodedValue = codec.decode(buffer)
+    val size = codec.sizeEstimator(initValue)
+    val initBuffer = ByteBuffer.allocate(size)
+    val buffer = codec
+      .encoder
+      .apply(initBuffer)
+      .apply(initValue)
+      .flip
+
+    val decodedValue = codec
+      .decoder
+      .apply(buffer)
 
     initValue shouldBe decodedValue
   }

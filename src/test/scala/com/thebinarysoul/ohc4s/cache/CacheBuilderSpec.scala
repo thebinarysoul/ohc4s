@@ -1,13 +1,13 @@
 package com.thebinarysoul.ohc4s.cache
 
 import com.thebinarysoul.ohc4s.codec.Serializer
-import com.thebinarysoul.ohc4s.config.CacheConf
 import org.caffinitas.ohc.{Eviction, HashAlgorithm, Ticker}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 import java.nio.ByteBuffer
 import java.util.concurrent.Executors
+import com.thebinarysoul.ohc4s.codec.given
 
 class CacheBuilderSpec extends AnyFlatSpec with Matchers {
   "CacheBuilder" should "create OHCCacheBuilder from CacheConf" in {
@@ -32,7 +32,7 @@ class CacheBuilderSpec extends AnyFlatSpec with Matchers {
       Some(true)
     )
 
-    val builder = CacheBuilder.from(conf, Serializer, Serializer)
+    val builder = CacheBuilder.from[Int, Int](conf)
 
     conf.capacity shouldBe builder.getCapacity
     conf.unlocked shouldBe Some(builder.isUnlocked)
