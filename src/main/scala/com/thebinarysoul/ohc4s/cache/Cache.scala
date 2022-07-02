@@ -6,11 +6,7 @@ import org.caffinitas.ohc.{OHCache, OHCacheBuilder}
 import util.chaining.scalaUtilChainingOps
 import java.nio.ByteBuffer
 
-trait Cache[F[_], K: Codec, V: Codec](conf: CacheConf) {
-  protected lazy val cache: OHCache[K, V] = CacheBuilder
-    .from(conf)
-    .build
-
+trait Cache[F[_], K, V] {
   def put(key: K, value: V): F[Boolean]
   def get(key: K): F[Option[V]]
 }
