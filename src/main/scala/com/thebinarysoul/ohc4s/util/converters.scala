@@ -3,7 +3,7 @@ package com.thebinarysoul.ohc4s.util
 import com.google.common.util.concurrent.ListenableFuture
 import org.caffinitas.ohc.CloseableIterator
 
-import java.util.concurrent.{CompletableFuture, FutureTask, TimeUnit, Future as JFuture}
+import java.util.concurrent.{CompletableFuture, Executors, FutureTask, TimeUnit, Future as JFuture}
 import scala.concurrent.{CanAwait, ExecutionContext, Future, Promise}
 import scala.concurrent.duration.Duration
 import scala.jdk.FutureConverters
@@ -13,7 +13,7 @@ import scala.jdk.FutureConverters.*
 object converters {
   private case class ListenablePromise[T](jFuture: ListenableFuture[T]) extends Promise[T] {
     private val promise = Promise[T]()
-    jFuture.addListener(() => promise.success(jFuture.get), ExecutionContext.global)
+    jFuture.addListener(() => promise.success(jFuture.get), Executors.newSingleThreadExecutor)
 
     override def future: Future[T] = promise.future
     override def isCompleted: Boolean = promise.isCompleted
@@ -21,8 +21,9 @@ object converters {
   }
 
   extension[T](jFuture: JFuture[T])
-    def asScala: Future[T] = jFuture match
+    inline def asScala: Future[T] = inline jFuture match
       case lfFuture: ListenableFuture[T] => ListenablePromise(lfFuture).future
+      case _ => throw IllegalArgumentException("You should use java.util.concurrent.Future.asScala only for OHCCache API")
 
   extension[T] (javaIterator: CloseableIterator[T])
     def asScala: AutoCloseableIterator[T] = new AutoCloseableIterator[T]:
