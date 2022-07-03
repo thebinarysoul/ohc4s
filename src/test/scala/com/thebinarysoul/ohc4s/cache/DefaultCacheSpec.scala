@@ -2,9 +2,11 @@ package com.thebinarysoul.ohc4s.cache
 
 import com.thebinarysoul.ohc4s.codec.*
 import com.thebinarysoul.ohc4s.codec.given
+import org.caffinitas.ohc.CacheLoader
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.BeforeAndAfterEach
+import scala.util.Using
 
 class DefaultCacheSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach {
   private val cache = Cache.create[String, List[(String, Int)]](1024 * 16)
@@ -18,12 +20,49 @@ class DefaultCacheSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach
     cache.put("key", List(("a", 1), ("b", 2))) shouldBe true
   }
 
-  "cache" should "contain key" in {
+  "cache" should "put (key, value) if key absences" in {
+    cache.putIfAbsent("key", List(("a", 1), ("b", 2))) shouldBe true
+  }
+
+  "cache" should "not put (key, value) if key presents" in {
+    cache.put("key", Nil) shouldBe true
+    cache.putIfAbsent("key", List(("a", 1), ("b", 2))) shouldBe false
+  }
+
+  "cache" should "replace old value with new one" in {
+    cache.putAll(data)
+    cache.addOrReplace("1", List(("1", 1)), List(("a", 1))) shouldBe true
+    cache.get("1") shouldBe Some(List(("a", 1)))
+  }
+
+  "cache" should "not replace old value with new one" in {
+    cache.putAll(data)
+    cache.addOrReplace("1", List(("10", 1)), List(("a", 1))) shouldBe false
+    cache.get("1") shouldBe Some(List(("1", 1)))
+  }
+
+  "cache" should "return keyIterator" in {
+    cache.putAll(data)
+    Using
+      .resource(cache.keyIterator) { iterator =>
+        iterator.toList.sorted shouldBe data.keys.toList.sorted
+      }
+  }
+
+  "cache" should "return keyBufferIterator" in {
+    cache.putAll(data)
+    Using
+      .resource(cache.keyBufferIterator) { iterator =>
+        iterator.map(summon[Codec[String]].decoder).toList.sorted shouldBe data.keys.toList.sorted
+      }
+  }
+
+  "cache" should "contain a key" in {
     cache.put("key", List(("a", 1)))
     cache.containsKey("key") shouldBe true
   }
 
-  "cache" should "not contain key" in {
+  "cache" should "not contain a key" in {
     cache.containsKey("key") shouldBe false
   }
 
@@ -52,7 +91,7 @@ class DefaultCacheSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach
       summon[Codec[List[(String, Int)]]].decoder(dva.buffer)
     }
 
-    values shouldBe List(List(("1", 1)),List(("2",2)))
+    values shouldBe List(List(("1", 1)), List(("2", 2)))
   }
 
   "cache" should "put Map[K, V]" in {
@@ -79,7 +118,7 @@ class DefaultCacheSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach
   }
 
   "cache" should "return capacity" in {
-     cache.capacity shouldBe 1024 * 16
+    cache.capacity shouldBe 1024 * 16
   }
 
   "cache" should "return loadFactor" in {
