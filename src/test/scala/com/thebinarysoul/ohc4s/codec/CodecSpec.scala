@@ -98,6 +98,11 @@ class CodecSpec extends AnyFlatSpec with Matchers {
     check(List.fill(10)(user))
   }
 
+  "Codec" should "derive Codec[Array[Byte]]" in {
+    check(Array[Byte](1, 2, 3))
+    check(Array.emptyByteArray)
+  }
+
   private def check[T : Codec](initValue: T): Unit = {
     val codec = summon[Codec[T]]
     val size = codec.sizeEstimator(initValue)
