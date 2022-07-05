@@ -14,3 +14,4 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % scalatestVersion % Test
 )
 
+scalafmtOnCompile := true

@@ -17,7 +17,8 @@ import scala.jdk.CollectionConverters.IterableHasAsJava
 import com.thebinarysoul.ohc4s.util.converters.*
 import concurrent.ExecutionContext.Implicits.global
 
-private[cache] class DefaultCache[K, V](conf: CacheConf)(using Codec[K], Codec[V]) extends BaseCache[[T] =>> T, Future, K, V](conf) {
+private[cache] class DefaultCache[K, V](conf: CacheConf)(using Codec[K], Codec[V])
+    extends BaseCache[[T] =>> T, Future, K, V](conf) {
   override def put(key: K, value: V): Boolean = cache.put(key, value)
 
   override def put(key: K, value: V, expireAt: Long): Boolean = cache.put(key, value, expireAt)
@@ -30,7 +31,8 @@ private[cache] class DefaultCache[K, V](conf: CacheConf)(using Codec[K], Codec[V
 
   override def addOrReplace(key: K, old: V, value: V): Boolean = cache.addOrReplace(key, old, value)
 
-  override def addOrReplace(key: K, old: V, value: V, expireAt: Long): Boolean = cache.addOrReplace(key, old, value, expireAt)
+  override def addOrReplace(key: K, old: V, value: V, expireAt: Long): Boolean =
+    cache.addOrReplace(key, old, value, expireAt)
 
   override def remove(key: K): Boolean = cache.remove(key)
 
@@ -44,7 +46,9 @@ private[cache] class DefaultCache[K, V](conf: CacheConf)(using Codec[K], Codec[V
 
   override def getDirect(key: K): Option[DirectValueAccess] = Option(cache.getDirect(key))
 
-  override def getDirect(key: K, updateLRU: Boolean): Option[DirectValueAccess] = Option(cache.getDirect(key, updateLRU))
+  override def getDirect(key: K, updateLRU: Boolean): Option[DirectValueAccess] = Option(
+    cache.getDirect(key, updateLRU)
+  )
 
   private def safe[T, E <: Throwable](action: => T): Either[E, T] =
     try Right(action)
@@ -55,7 +59,12 @@ private[cache] class DefaultCache[K, V](conf: CacheConf)(using Codec[K], Codec[V
   override def getWithLoader(key: K, loader: CacheLoader[K, V]): Either[InterruptedException | ExecutionException, V] =
     safe(cache.getWithLoader(key, loader))
 
-  override def getWithLoader(key: K, loader: CacheLoader[K, V], timeout: Long, unit: TimeUnit): Either[InterruptedException | ExecutionException | TimeoutException, V] =
+  override def getWithLoader(
+      key: K,
+      loader: CacheLoader[K, V],
+      timeout: Long,
+      unit: TimeUnit
+  ): Either[InterruptedException | ExecutionException | TimeoutException, V] =
     safe(cache.getWithLoader(key, loader, timeout, unit))
 
   override def getWithLoaderAsync(key: K, loader: CacheLoader[K, V]): Future[V] =
@@ -118,4 +127,3 @@ private[cache] class DefaultCache[K, V](conf: CacheConf)(using Codec[K], Codec[V
 
   override def setCapacity(capacity: Long): Unit = cache.setCapacity(capacity)
 }
-

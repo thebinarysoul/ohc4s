@@ -24,15 +24,15 @@ object converters {
     override def tryComplete(result: Try[T]): Boolean = promise.tryComplete(result)
   }
 
-  extension[T] (jFuture: JFuture[T])
+  extension [T](jFuture: JFuture[T])
     inline def asScala: Future[T] = inline jFuture match
       case lfFuture: ListenableFuture[T] => ListenablePromise(lfFuture).future
-      case _ => throw IllegalArgumentException("You should use java.util.concurrent.Future.asScala only for OHCCache API")
+      case _ =>
+        throw IllegalArgumentException("You should use java.util.concurrent.Future.asScala only for OHCCache API")
 
-  extension[T] (javaIterator: CloseableIterator[T])
-    inline def asScala: AutoCloseableIterator[T] = new AutoCloseableIterator[T] :
+  extension [T](javaIterator: CloseableIterator[T])
+    inline def asScala: AutoCloseableIterator[T] = new AutoCloseableIterator[T]:
       override def close(): Unit = javaIterator.close()
       override def hasNext: Boolean = javaIterator.hasNext
       override def next(): T = javaIterator.next()
 }
-

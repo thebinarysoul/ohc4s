@@ -47,10 +47,9 @@ class CacheBuilderSpec extends AnyFlatSpec with Matchers {
     conf.eviction shouldBe Some(builder.getEviction)
     conf.chunkSize shouldBe Some(builder.getChunkSize)
     conf.edenSize shouldBe Some(builder.getEdenSize)
-    conf.fixedEntrySize.foreach {
-      case (keySize, valueSize) =>
-          keySize shouldBe builder.getFixedKeySize
-          valueSize shouldBe builder.getFixedValueSize
+    conf.fixedEntrySize.foreach { case (keySize, valueSize) =>
+      keySize shouldBe builder.getFixedKeySize
+      valueSize shouldBe builder.getFixedValueSize
     }
     conf.timeouts shouldBe Some(builder.isTimeouts)
     conf.timeoutsSlots shouldBe Some(builder.getTimeoutsSlots)

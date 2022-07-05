@@ -66,12 +66,14 @@ class CodecSpec extends AnyFlatSpec with Matchers {
   "Codec" should "derive Codec[Map[K, V]]" in {
     check(Map.empty[Long, String])
     check(Map(1 -> "a"))
-    check(Map(
-      "a" -> Map(1 -> List(Option(1))),
-      "b" -> Map.empty,
-      "c" -> Map(2 -> List(None)),
-      "d" -> Map(3 -> Nil)
-    ))
+    check(
+      Map(
+        "a" -> Map(1 -> List(Option(1))),
+        "b" -> Map.empty,
+        "c" -> Map(2 -> List(None)),
+        "d" -> Map(3 -> Nil)
+      )
+    )
   }
 
   "Codec" should "derive custom Codec[T]" in {
@@ -103,18 +105,16 @@ class CodecSpec extends AnyFlatSpec with Matchers {
     check(Array.emptyByteArray)
   }
 
-  private def check[T : Codec](initValue: T): Unit = {
+  private def check[T: Codec](initValue: T): Unit = {
     val codec = summon[Codec[T]]
     val size = codec.sizeEstimator(initValue)
     val initBuffer = ByteBuffer.allocate(size)
-    val buffer = codec
-      .encoder
+    val buffer = codec.encoder
       .apply(initBuffer)
       .apply(initValue)
       .flip
 
-    val decodedValue = codec
-      .decoder
+    val decodedValue = codec.decoder
       .apply(buffer)
 
     initValue shouldBe decodedValue

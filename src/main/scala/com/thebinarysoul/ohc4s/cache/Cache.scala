@@ -32,7 +32,12 @@ trait Cache[F[_], A[_], K, V] {
   def getDirect(key: K, updateLRU: Boolean): F[Option[DirectValueAccess]]
 
   def getWithLoader(key: K, loader: CacheLoader[K, V]): F[Either[InterruptedException | ExecutionException, V]]
-  def getWithLoader(key: K, loader: CacheLoader[K, V], timeout: Long, unit: TimeUnit): F[Either[InterruptedException | ExecutionException | TimeoutException, V]]
+  def getWithLoader(
+      key: K,
+      loader: CacheLoader[K, V],
+      timeout: Long,
+      unit: TimeUnit
+  ): F[Either[InterruptedException | ExecutionException | TimeoutException, V]]
   def getWithLoaderAsync(key: K, loader: CacheLoader[K, V]): F[A[V]]
   def getWithLoaderAsync(key: K, loader: CacheLoader[K, V], expireAt: Long): F[A[V]]
 

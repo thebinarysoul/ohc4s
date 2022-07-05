@@ -6,13 +6,13 @@ import org.caffinitas.ohc.{CacheSerializer, OHCache, OHCacheBuilder}
 import java.nio.ByteBuffer
 
 private[cache] object CacheBuilder {
-  extension[K, V] (builder: OHCacheBuilder[K, V])
+  extension [K, V](builder: OHCacheBuilder[K, V])
     def set[T](param: Option[T], transition: OHCacheBuilder[K, V] => T => OHCacheBuilder[K, V]): OHCacheBuilder[K, V] =
       param
         .map(transition(builder))
         .getOrElse(builder)
 
-  def from[K : Codec, V : Codec](conf: CacheConf): OHCacheBuilder[K, V] = OHCacheBuilder
+  def from[K: Codec, V: Codec](conf: CacheConf): OHCacheBuilder[K, V] = OHCacheBuilder
     .newBuilder[K, V]
     .capacity(conf.capacity)
     .keySerializer(Serializer[K])
@@ -35,5 +35,3 @@ private[cache] object CacheBuilder {
     .set(conf.segmentCount, _.segmentCount)
     .set(conf.unlocked, _.unlocked)
 }
-
-

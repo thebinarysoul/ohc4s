@@ -13,7 +13,6 @@ trait Codec[T]:
   def decoder: Decoder[T]
   def sizeEstimator: Estimator[T]
 
-
 object Codec {
   type Encoder[T] = Buffer => T => Buffer
   type Decoder[T] = Buffer => T
@@ -26,8 +25,7 @@ object Codec {
         .apply(next)
     }
 
-  private[codec] inline def decodeIterable[T](buffer: Buffer, decoder: Decoder[T]) = buffer
-    .getInt
+  private[codec] inline def decodeIterable[T](buffer: Buffer, decoder: Decoder[T]) = buffer.getInt
     .pipe(size => Iterable.fill(size)(decoder apply buffer))
 
   private[codec] inline def estimateIterableSize[T](iterable: Iterable[T], estimator: Estimator[T]): Int =
@@ -70,45 +68,48 @@ inline given Codec[Boolean] with
   override val sizeEstimator: Estimator[Boolean] = _ => int[1]
 
 inline given Codec[Array[Byte]] with
-  override def encoder: Encoder[Array[Byte]] = buffer => array => buffer
-    .putInt(array.length)
-    .put(array)
+  override def encoder: Encoder[Array[Byte]] = buffer =>
+    array =>
+      buffer
+        .putInt(array.length)
+        .put(array)
 
-  override def decoder: Decoder[Array[Byte]] = buffer => buffer
-    .getInt
-    .pipe { size =>
-      val bytes = new Array[Byte](size)
-      buffer.get(bytes)
-      bytes
-    }
+  override def decoder: Decoder[Array[Byte]] = buffer =>
+    buffer.getInt
+      .pipe { size =>
+        val bytes = new Array[Byte](size)
+        buffer.get(bytes)
+        bytes
+      }
 
   override def sizeEstimator: Estimator[Array[Byte]] = _.length + int[4]
 
 inline given Codec[String] with
-  override val encoder: Encoder[String] = buffer => _.getBytes
-    .pipe { bytes =>
-      buffer
-        .putInt(bytes.length)
-        .put(bytes)
-    }
+  override val encoder: Encoder[String] = buffer =>
+    _.getBytes
+      .pipe { bytes =>
+        buffer
+          .putInt(bytes.length)
+          .put(bytes)
+      }
 
-  override val decoder: Decoder[String] = buffer => buffer
-    .getInt
-    .pipe {size =>
-      val bytes = new Array[Byte](size)
-      buffer.get(bytes)
-      String(bytes)
-    }
+  override val decoder: Decoder[String] = buffer =>
+    buffer.getInt
+      .pipe { size =>
+        val bytes = new Array[Byte](size)
+        buffer.get(bytes)
+        String(bytes)
+      }
 
   override val sizeEstimator: Estimator[String] = string => int[4] + string.getBytes.length
 
-inline given optCodec[T](using codec: Codec[T]): Codec[Option[T]] = new Codec[Option[T]] :
+inline given optCodec[T](using codec: Codec[T]): Codec[Option[T]] = new Codec[Option[T]]:
   override val encoder: Encoder[Option[T]] = buffer => {
     case None => buffer.put(byte[0])
-    case Some(value) => codec
-      .encoder
-      .apply(buffer.put(byte[1]))
-      .apply(value)
+    case Some(value) =>
+      codec.encoder
+        .apply(buffer.put(byte[1]))
+        .apply(value)
   }
 
   override val decoder: Decoder[Option[T]] = buffer => {
@@ -119,20 +120,19 @@ inline given optCodec[T](using codec: Codec[T]): Codec[Option[T]] = new Codec[Op
 
   override val sizeEstimator: Estimator[Option[T]] = value => int[1] + value.map(codec.sizeEstimator).getOrElse(0)
 
-inline given listCodec[T](using codec: Codec[T]): Codec[List[T]] = new Codec[List[T]] :
+inline given listCodec[T](using codec: Codec[T]): Codec[List[T]] = new Codec[List[T]]:
   override val encoder: Encoder[List[T]] = buffer => list => encodeIterable(list, buffer, codec.encoder)
   override val decoder: Decoder[List[T]] = buffer => decodeIterable(buffer, codec.decoder).toList
   override val sizeEstimator: Estimator[List[T]] = list => estimateIterableSize(list, codec.sizeEstimator)
 
-inline given mapCodec[K, V](using codec: Codec[(K, V)]): Codec[Map[K, V]] = new Codec[Map[K, V]] :
+inline given mapCodec[K, V](using codec: Codec[(K, V)]): Codec[Map[K, V]] = new Codec[Map[K, V]]:
   override val encoder: Encoder[Map[K, V]] = buffer => map => encodeIterable(map, buffer, codec.encoder)
   override val decoder: Decoder[Map[K, V]] = buffer => decodeIterable(buffer, codec.decoder).toMap
   override val sizeEstimator: Estimator[Map[K, V]] = map => estimateIterableSize(map, codec.sizeEstimator)
 
-inline given[H, T <: Tuple] (using headCodec: Codec[H], tailCodec: Codec[T]): Codec[H *: T] with
-  override val encoder: Encoder[H *: T] = buffer => {
-    case head *: tail => headCodec
-      .encoder
+inline given [H, T <: Tuple](using headCodec: Codec[H], tailCodec: Codec[T]): Codec[H *: T] with
+  override val encoder: Encoder[H *: T] = buffer => { case head *: tail =>
+    headCodec.encoder
       .apply(buffer)
       .andThen(tailCodec.encoder)
       .apply(head)
@@ -141,8 +141,8 @@ inline given[H, T <: Tuple] (using headCodec: Codec[H], tailCodec: Codec[T]): Co
 
   override val decoder: Decoder[H *: T] = buffer => headCodec.decoder(buffer) *: tailCodec.decoder(buffer)
 
-  override val sizeEstimator: Estimator[H *: T] = {
-    case head *: tail => headCodec.sizeEstimator(head) + tailCodec.sizeEstimator(tail)
+  override val sizeEstimator: Estimator[H *: T] = { case head *: tail =>
+    headCodec.sizeEstimator(head) + tailCodec.sizeEstimator(tail)
   }
 
 inline given Codec[EmptyTuple] with
@@ -150,16 +150,17 @@ inline given Codec[EmptyTuple] with
   override val decoder: Decoder[EmptyTuple] = _ => EmptyTuple
   override val sizeEstimator: Estimator[Any] = _ => int[0]
 
-inline given productCodec[P <: Product](using m: Mirror.ProductOf[P], metCodec: Codec[m.MirroredElemTypes]): Codec[P] = new Codec[P] :
-  override val encoder: Encoder[P] = buffer => value => metCodec
-    .encoder
-    .apply(buffer)
-    .apply(Tuple.fromProductTyped(value))
+inline given productCodec[P <: Product](using m: Mirror.ProductOf[P], metCodec: Codec[m.MirroredElemTypes]): Codec[P] =
+  new Codec[P]:
+    override val encoder: Encoder[P] = buffer =>
+      value =>
+        metCodec.encoder
+          .apply(buffer)
+          .apply(Tuple.fromProductTyped(value))
 
-  override val decoder: Decoder[P] = buffer =>
-    metCodec
-      .decoder
-      .apply(buffer)
-      .pipe(m.fromProduct)
+    override val decoder: Decoder[P] = buffer =>
+      metCodec.decoder
+        .apply(buffer)
+        .pipe(m.fromProduct)
 
-  override val sizeEstimator: Estimator[P] = value => metCodec.sizeEstimator(Tuple.fromProductTyped(value))
+    override val sizeEstimator: Estimator[P] = value => metCodec.sizeEstimator(Tuple.fromProductTyped(value))
