@@ -128,13 +128,13 @@ class DefaultCacheSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach
   "cache" should "return freeCapacity" in {
     cache.freeCapacity shouldBe cache.capacity
     cache.put("1", Nil)
-    cache.freeCapacity shouldBe cache.capacity - 80
+    cache.freeCapacity shouldBe cache.capacity - 80 //(key 8) + (value 8) + 64
   }
 
   "cache" should "return memUsed" in {
     cache.memUsed shouldBe 0
     cache.put("1", Nil)
-    cache.memUsed shouldBe 80
+    cache.memUsed shouldBe 80 //(key 8) + (value 8) + 64
   }
 
   "cache" should "return size" in {
