@@ -23,9 +23,15 @@ cache.put("Luna", User("Luna", 7))
 val maybeValue: Option[User] = cache.get("Luna")
 ```
 
+## Supported types
+
+ - Byte, Short, Int, Long, Float, Double, Boolean, String
+ - Option[T], List[T], Map[K, V], Array[Byte]
+ - Tuples and case classes
+
 ## Limitations
 
-TBD
+Currently, you cannot use recursive case classes
 
 ## License
 ohc4s is made available under the [Apache 2.0 License](/LICENSE).
