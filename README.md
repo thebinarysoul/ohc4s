@@ -33,6 +33,20 @@ val maybeValue: Option[User] = cache.get("Luna")
 
 Currently, you cannot use recursive case classes
 
+## Custom codecs
+
+If you want to make your own Codec, then you should create a given codec instance of the desired type.
+
+```scala
+import com.thebinarysoul.ohc4s.codec.Codec
+import java.time.LocalDate
+
+given userCodec: Codec[LocalDate] = new Codec[LocalDate]:
+  override def encoder: Encoder[LocalDate] = buffer => value => buffer.putLong(value.toEpochDay)
+  override def decoder: Decoder[LocalDate] = buffer => LocalDate.ofEpochDay(buffer.getLong)
+  override def sizeEstimator: Estimator[LocalDate] = _ => 8
+```
+
 ## License
 ohc4s is made available under the [Apache 2.0 License](/LICENSE).
 
