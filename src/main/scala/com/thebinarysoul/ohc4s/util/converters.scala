@@ -10,7 +10,7 @@ import scala.jdk.FutureConverters
 import scala.util.{Failure, Success, Try}
 import scala.jdk.FutureConverters.*
 
-object converters {
+private[ohc4s] object converters {
   class ListenablePromise[T](jFuture: ListenableFuture[T]) extends Promise[T] {
     private val promise = Promise[T]()
     private val callback: Runnable = () =>
