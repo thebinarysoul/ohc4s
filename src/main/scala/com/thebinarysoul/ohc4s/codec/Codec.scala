@@ -8,6 +8,11 @@ import scala.deriving.Mirror.ProductOf
 import scala.deriving.Mirror
 import scala.util.chaining.*
 
+/** A type class that provides functions for encoding, decoding of values of type 'T' via [[Buffer`]] provided by
+  * [[org.caffinitas.ohc.CacheSerializer]].
+  *
+  * It also provides a function to estimate the size of value of type 'T'
+  */
 trait Codec[T]:
   def encoder: Encoder[T]
   def decoder: Decoder[T]

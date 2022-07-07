@@ -114,6 +114,8 @@ class CodecSpec extends AnyFlatSpec with Matchers {
       .apply(initValue)
       .flip
 
+    size shouldBe buffer.capacity
+
     val decodedValue = codec.decoder
       .apply(buffer)
 
