@@ -29,18 +29,6 @@ class DefaultCacheSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach
     cache.putIfAbsent("key", List(("a", 1), ("b", 2))) shouldBe false
   }
 
-  "cache" should "replace old value with new one" in {
-    cache.putAll(data)
-    cache.addOrReplace("1", List(("1", 1)), List(("a", 1))) shouldBe true
-    cache.get("1") shouldBe Some(List(("a", 1)))
-  }
-
-  "cache" should "not replace old value with new one" in {
-    cache.putAll(data)
-    cache.addOrReplace("1", List(("10", 1)), List(("a", 1))) shouldBe false
-    cache.get("1") shouldBe Some(List(("1", 1)))
-  }
-
   "cache" should "return keyIterator" in {
     cache.putAll(data)
     Using

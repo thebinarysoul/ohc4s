@@ -9,6 +9,8 @@ val ohcVersion = "0.7.4"
 lazy val commonSettings = Seq(
   homepage := Some(url("https://github.com/thebinarysoul/ohc4s")),
   licenses := Seq("Apache 2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
+  Test / parallelExecution := false,
+  Global / parallelExecution := false,
   scalafmtOnCompile := true
 )
 
