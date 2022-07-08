@@ -11,6 +11,14 @@ import java.nio.ByteBuffer
 import java.nio.channels.{ReadableByteChannel, WritableByteChannel}
 import java.util.concurrent.{ExecutionException, Future, TimeUnit, TimeoutException}
 
+/**
+ * It's just a wrapper trait for [[OHCache]]
+ * You should see [[OHCache]] for detail
+ * @tparam F is a wrapper for the results of the original [[OHCache]] methods
+ * @tparam A is a representation of an async effect
+ * @tparam K is the type of keys
+ * @tparam V is the type of values
+ */
 trait Cache[F[_], A[_], K, V] {
   def put(key: K, value: V): F[Boolean]
   def put(key: K, value: V, expireAt: Long): F[Boolean]
